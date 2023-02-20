@@ -16,9 +16,9 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
     private dataSender dataSender;
 
-    private PowerManager.WakeLock wakeLock;
-
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private Button startButton;
+    private Button stopButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,11 +26,24 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         setContentView(R.layout.activity_main);
 
         EditText editText = findViewById(R.id.compNumber);
-        Button button = findViewById(R.id.compStart);
-        button.setOnClickListener(new View.OnClickListener() {
+        stopButton = findViewById(R.id.compStop);
+        stopButton.setEnabled(false);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopRacing();
+            }
+        });
+
+        startButton = findViewById(R.id.compStart);
+        startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String text = editText.getText().toString();
+                if (text.equals("")) {
+                    Toast.makeText(MainActivity.this, "הכנס מספר משתתף", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 // Do something with the text from the EditText
                 dataSender = new dataSender(MainActivity.this, Integer.parseInt(text));
                 // Permissions
@@ -61,6 +74,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     public void startRacing() {
         dataSender.start();
+        stopButton.setEnabled(true);
+        startButton.setEnabled(false);
+    }
+
+    public void stopRacing() {
+        dataSender.stop();
+        stopButton.setEnabled(false);
+        startButton.setEnabled(true);
     }
 
     @Override

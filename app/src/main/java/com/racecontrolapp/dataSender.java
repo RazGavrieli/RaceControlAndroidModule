@@ -1,5 +1,7 @@
 package com.racecontrolapp;
 
+import static android.content.Context.POWER_SERVICE;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -13,6 +15,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
@@ -44,7 +47,8 @@ public class dataSender implements LocationListener {
 
     //private String url = "http://10.0.2.2:8000/";
     private String url = "http://192.168.1.111:8000/";
-
+    private PowerManager powerManager;
+    private PowerManager.WakeLock wakeLock;
 
     public dataSender(Context context, int compNumber) {
         this.compNumber = compNumber;
@@ -55,6 +59,9 @@ public class dataSender implements LocationListener {
 
         // Create a handler and a runnable to send location updates to the server
         this.handler = new Handler();
+
+        this.powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
+        this.wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::MyWakelockTag");
 
         // Get the g-force data from the accelerometer sensor
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -95,6 +102,7 @@ public class dataSender implements LocationListener {
             }
         };
         handler.postDelayed(sendLocationRunnable, UPDATE_INTERVAL);
+        this.wakeLock.acquire();
     }
 
     public void stop() {
@@ -104,6 +112,7 @@ public class dataSender implements LocationListener {
 
         // Stop sending location updates to the server
         handler.removeCallbacks(sendLocationRunnable);
+        this.wakeLock.release();
     }
 
     @Override
